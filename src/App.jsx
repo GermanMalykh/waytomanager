@@ -1,31 +1,28 @@
 import React, { useState, useEffect } from 'react'
-import TheoryBlock from './components/TheoryBlock'
-import CaseBlock from './components/CaseBlock'
-import Mascot from './components/Mascot'
-import XPBar from './components/XPBar'
-import moduleData from './data/module1.json'
+import Sidebar from './components/Sidebar'
+import ModuleSection from './components/ModuleSection'
 
 export default function App() {
-  const [xp, setXp] = useState(() => parseInt(localStorage.getItem('pm-xp')) || 0)
-  const [selected, setSelected] = useState(null)
+    const [selectedModuleId, setSelectedModuleId] = useState(null)
+    const [moduleData, setModuleData] = useState(null)
 
-  useEffect(() => {
-    localStorage.setItem('pm-xp', xp)
-  }, [xp])
+    useEffect(() => {
+        if (!selectedModuleId) return
 
-  const handleAnswer = (isCorrect) => {
-    if (selected !== null) return
-    setSelected(isCorrect)
-    if (isCorrect) setXp(prev => prev + 5)
-  }
+        fetch(`/waytomanager/data/${selectedModuleId}.json`)
+            .then(res => res.json())
+            .then(setModuleData)
+            .catch(() => setModuleData(null))
+    }, [selectedModuleId])
 
-  return (
-    <div style={{ maxWidth: 800, margin: '0 auto', fontFamily: 'sans-serif', padding: 20 }}>
-      <h1>WayToManager: Принцип 6 — Управление рисками</h1>
-      <XPBar xp={xp} />
-      <TheoryBlock text={moduleData.theory} />
-      <CaseBlock caseData={moduleData.case} onAnswer={handleAnswer} selected={selected} />
-      <Mascot selected={selected} />
-    </div>
-  )
+    return (
+        <div style={{ display: "flex" }}>
+            <Sidebar onSelect={setSelectedModuleId} />
+            <main style={{ flex: 1, padding: 40, maxWidth: 800 }}>
+                {moduleData
+                    ? <ModuleSection data={moduleData} />
+                    : <p>Выберите модуль из списка слева</p>}
+            </main>
+        </div>
+    )
 }

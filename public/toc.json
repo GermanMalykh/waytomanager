@@ -1,0 +1,10 @@
+[
+  {
+    "id": "principles",
+    "title": "Принципы",
+    "modules": [
+      { "id": "valueSystem", "title": "Создание ценности" },
+      { "id": "riskManagement", "title": "Управление рисками" }
+    ]
+  }
+]
