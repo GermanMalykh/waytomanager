@@ -5,12 +5,12 @@ export default function Mascot({ selected, type = "turtle" }) {
 
     const mascots = {
         turtle: {
-            img: `${base}turtle.svg`,
+            img: `${base}/turtle.svg`,
             correct: "🐢 Отличный выбор! Ты двигаешься по PMBOK как черепаха к успеху!",
             wrong: "🐢 Ой! Подумай ещё раз — не спеши, как черепаха 🐢"
         },
         meerkat: {
-            img: `${base}meerkat_standart.svg`,
+            img: `${base}/assets/mascots/meerkat_standart.svg`,
             correct: "🦝 Отличный выбор! Ты управляешь рисками как профи ✅",
             wrong: "🦝 Хм, подумай ещё раз — лучше фиксировать риски заранее ⚠️"
         }

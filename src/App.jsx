@@ -9,7 +9,7 @@ export default function App() {
     useEffect(() => {
         if (!selectedModuleId) return
 
-        fetch(`/waytomanager/data/${selectedModuleId}.json`)
+        fetch(`/waytomanager/data/modules/${selectedModuleId}.json`)
             .then(res => res.json())
             .then(setModuleData)
             .catch(() => setModuleData(null))
@@ -17,7 +17,7 @@ export default function App() {
 
     return (
         <div style={{ display: "flex" }}>
-            <Sidebar onSelect={setSelectedModuleId} />
+            <Sidebar onSelect={setSelectedModuleId} activeModuleId={selectedModuleId} />
             <main style={{ flex: 1, padding: 40, maxWidth: 800 }}>
                 {moduleData
                     ? <ModuleSection data={moduleData} />
