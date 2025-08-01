@@ -12,7 +12,7 @@ export default function Sidebar({onSelect, activeModuleId}) {
         }))
         .filter((section) => section.modules.length > 0)
     useEffect(() => {
-        fetch('/waytomanager/public/data/system/toc.json')
+        fetch(`${import.meta.env.BASE_URL}data/system/toc.json`)
             .then((res) => res.json())
             .then(setToc)
             .catch((err) => console.error("Ошибка загрузки TOC:", err));
