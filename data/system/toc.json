@@ -6,5 +6,13 @@
       { "id": "valueSystem", "title": "Создание ценности" },
       { "id": "riskManagement", "title": "Управление рисками" }
     ]
+  },
+  {
+    "id": "mock",
+    "title": "Мок",
+    "modules": [
+      { "id": "title1", "title": "Тайтл1" },
+      { "id": "title2", "title": "Тайтл2" }
+    ]
   }
 ]
