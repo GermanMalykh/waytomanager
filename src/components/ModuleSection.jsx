@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import Mascot from './Mascot'
 
-export default function ModuleSection({data}) {
+export default function ModuleSection({ data, onComplete }) {
     if (!data?.blocks || !Array.isArray(data.blocks)) {
         return <p>Данные модуля повреждены или пусты.</p>
     }
@@ -23,8 +23,12 @@ export default function ModuleSection({data}) {
         setAnswered(newAnswered)
         setXp(newXp)
 
+        if (selected.isCorrect && typeof onComplete === 'function') {
+            onComplete(data.id)
+        }
+
         localStorage.setItem(
-            `progress-${data.title}`,
+            `progress-${data.id}`,
             JSON.stringify({answered: newAnswered, xp: newXp})
         )
     }
@@ -37,7 +41,7 @@ export default function ModuleSection({data}) {
         const firstTheory = blocks.find(b => b.type === 'theory')?.id
         setActiveTab(firstTheory || blocks[0]?.id || 'block-0')
 
-        const savedProgress = JSON.parse(localStorage.getItem(`progress-${data.title}`)) || {}
+        const savedProgress = JSON.parse(localStorage.getItem(`progress-${data.id}`)) || {}
         setAnswered(savedProgress.answered || {})
         setXp(savedProgress.xp || 0)
     }, [data])
@@ -190,7 +194,7 @@ export default function ModuleSection({data}) {
                 onClick={() => {
                     setAnswered({})
                     setXp(0)
-                    localStorage.removeItem(`progress-${data.title}`)
+                    localStorage.removeItem(`progress-${data.id}`)
                     setSelectedOption(null)
                 }}
                 style={{
