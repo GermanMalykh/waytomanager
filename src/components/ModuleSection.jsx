@@ -3,7 +3,7 @@ import Mascot from './Mascot'
 
 export default function ModuleSection({ data, onComplete }) {
     if (!data?.blocks || !Array.isArray(data.blocks)) {
-        return <p>Данные модуля повреждены или пусты.</p>
+        return null
     }
 
     const [selectedOption, setSelectedOption] = useState(null)
@@ -12,7 +12,7 @@ export default function ModuleSection({ data, onComplete }) {
 
     const handleAnswer = (blockId, optionIndex) => {
         if (selectedOption === null) return
-        if (answered[blockId] !== undefined) return  // уже отвечали
+        if (answered[blockId] !== undefined) return
 
         const block = blocks.find(b => b.id === blockId)
         const selected = block.options[optionIndex]
@@ -32,8 +32,8 @@ export default function ModuleSection({ data, onComplete }) {
             JSON.stringify({answered: newAnswered, xp: newXp})
         )
     }
-    const blocks = data.blocks
 
+    const blocks = data.blocks
     const [activeTab, setActiveTab] = useState(null)
 
     useEffect(() => {
@@ -47,8 +47,7 @@ export default function ModuleSection({ data, onComplete }) {
     }, [data])
 
     const activeBlock = blocks.find(block => block.id === activeTab)
-
-    const progress = Math.min((xp / 10) * 100, 100)  // 10 XP = 100% пока что
+    const progress = Math.min((xp / 10) * 100, 100)
 
     const ProgressBar = () => (
         <div style={{marginBottom: 20}}>
@@ -64,6 +63,7 @@ export default function ModuleSection({ data, onComplete }) {
             </div>
         </div>
     )
+
     return (
         <div>
             <h2>{data.title}</h2>
@@ -115,7 +115,7 @@ export default function ModuleSection({ data, onComplete }) {
                                         const isCorrect = opt.isCorrect
 
                                         const background = isChosen
-                                            ? (isCorrect ? '#d4edda' : '#f8d7da')  // зелёный / красный
+                                            ? (isCorrect ? '#d4edda' : '#f8d7da')
                                             : '#f1f1f1'
 
                                         const border = isChosen
@@ -188,8 +188,8 @@ export default function ModuleSection({ data, onComplete }) {
                         )}
                     </div>
                 )}
-
             </div>
+
             <button
                 onClick={() => {
                     setAnswered({})
@@ -210,7 +210,5 @@ export default function ModuleSection({ data, onComplete }) {
                 🔁 Начать заново
             </button>
         </div>
-
     )
-
 }

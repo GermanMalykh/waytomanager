@@ -4,22 +4,29 @@ export default function Sidebar({onSelect, activeModuleId}) {
     const [toc, setToc] = useState([]);
     const [query, setQuery] = useState("")
     const [isTocLoaded, setIsTocLoaded] = useState(false)
-    const isModuleUnlocked = (sectionIndex, moduleIndex) => {
 
+    const isModuleUnlocked = (sectionIndex, moduleIndex) => {
         if (moduleIndex === 0) return true
 
         const prevModuleId = toc[sectionIndex].modules[moduleIndex - 1].id
         const savedProgress = localStorage.getItem(`progress-${prevModuleId}`)
         return !!savedProgress
     }
+
     const filteredToc = toc
-        .map((section) => ({
+        .map((section, sectionIndex) => ({
             ...section,
-            modules: section.modules.filter((mod) =>
-                mod.title.toLowerCase().includes(query.toLowerCase())
-            )
+            modules: section.modules
+                .map((mod, moduleIndex) => ({
+                    ...mod,
+                    isUnlocked: isModuleUnlocked(sectionIndex, moduleIndex)
+                }))
+                .filter((mod) =>
+                    mod.title.toLowerCase().includes(query.toLowerCase())
+                )
         }))
         .filter((section) => section.modules.length > 0)
+
     useEffect(() => {
         fetch(`${import.meta.env.BASE_URL}data/system/toc.json`)
             .then((res) => res.json())
@@ -65,45 +72,30 @@ export default function Sidebar({onSelect, activeModuleId}) {
                 }}
             />
             {filteredToc.length > 0 ? (
-                filteredToc.map((section, sectionIndex) => (
+                filteredToc.map((section) => (
                     <div key={section.id} style={{marginBottom: 20}}>
                         <h3 style={{fontSize: 16}}>{section.title}</h3>
                         <ul style={{listStyle: "none", padding: 0}}>
-                            {section.modules
-                                .filter((mod) =>
-                                    mod.title.toLowerCase().includes(query.toLowerCase())
-                                )
-                                .map((mod, moduleIndex) => {
-                                    const isUnlocked = isModuleUnlocked(sectionIndex, moduleIndex)
-
-                                    return (
-                                        <li key={mod.id} style={{margin: "6px 0", opacity: isUnlocked ? 1 : 0.5}}>
-                                            <button
-                                                onClick={() => {
-                                                    if (isUnlocked) {
-                                                        onSelect(mod.id)
-                                                    } else {
-                                                        localStorage.setItem(`blocked-${mod.id}`, "true")
-                                                        onSelect(mod.id)
-                                                    }
-                                                }}
-                                                style={{
-                                                    background: activeModuleId === mod.id ? "#007acc" : "none",
-                                                    color: activeModuleId === mod.id ? "#fff" : "#333",
-                                                    fontWeight: activeModuleId === mod.id ? "bold" : "normal",
-                                                    padding: "6px 8px",
-                                                    borderRadius: 4,
-                                                    border: "none",
-                                                    textAlign: "left",
-                                                    cursor: isUnlocked ? "pointer" : "not-allowed",
-                                                    width: "100%",
-                                                }}
-                                            >
-                                                {mod.title}
-                                            </button>
-                                        </li>
-                                    )
-                                })}
+                            {section.modules.map((mod) => (
+                                <li key={mod.id} style={{margin: "6px 0", opacity: mod.isUnlocked ? 1 : 0.5}}>
+                                    <button
+                                        onClick={() => onSelect(mod.id, !mod.isUnlocked)}
+                                        style={{
+                                            background: activeModuleId === mod.id ? "#007acc" : "none",
+                                            color: activeModuleId === mod.id ? "#fff" : "#333",
+                                            fontWeight: activeModuleId === mod.id ? "bold" : "normal",
+                                            padding: "6px 8px",
+                                            borderRadius: 4,
+                                            border: "none",
+                                            textAlign: "left",
+                                            cursor: mod.isUnlocked ? "pointer" : "not-allowed",
+                                            width: "100%",
+                                        }}
+                                    >
+                                        {mod.title}
+                                    </button>
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 ))
