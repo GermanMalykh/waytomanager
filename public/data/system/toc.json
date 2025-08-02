@@ -10,6 +10,10 @@
       {
         "id": "riskManagement",
         "title": "Управление рисками"
+      },
+      {
+        "id": "dropdownFillRisk",
+        "title": "Заполни пропуски"
       }
     ]
   },

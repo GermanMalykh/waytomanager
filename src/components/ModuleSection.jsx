@@ -1,10 +1,14 @@
 import React, {useState, useEffect} from 'react'
 import Mascot from './Mascot'
 
-export default function ModuleSection({data, onComplete}) {
+export default function ModuleSection({ data, onComplete }) {
     if (!data?.blocks || !Array.isArray(data.blocks)) return null
 
     const [selectedOption, setSelectedOption] = useState(null)
+    const [dropdownSelection, setDropdownSelection] = useState(null)
+    const [dropdownAnswered, setDropdownAnswered] = useState(false)
+    const [fillDropdownSelections, setFillDropdownSelections] = useState([])
+    const [fillDropdownAnswered, setFillDropdownAnswered] = useState(false)
     const [answered, setAnswered] = useState({})
     const blocks = data.blocks
     const [activeTab, setActiveTab] = useState(null)
@@ -26,13 +30,41 @@ export default function ModuleSection({data, onComplete}) {
         const block = blocks.find(b => b.id === blockId)
         const selected = block.options[optionIndex]
 
-        const newAnswered = {...answered, [blockId]: optionIndex}
+        const newAnswered = { ...answered, [blockId]: optionIndex }
         setAnswered(newAnswered)
 
         if (selected.isCorrect && typeof onComplete === 'function') {
             onComplete(data.id)
         }
 
+        localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
+        localStorage.setItem(`progress-${data.id}`, 'done')
+    }
+
+    const handleDropdownAnswer = (block) => {
+        const isCorrect = dropdownSelection === block.correctIndex
+        setDropdownAnswered(true)
+
+        if (isCorrect && typeof onComplete === 'function') {
+            onComplete(data.id)
+        }
+
+        const newAnswered = { ...answered, [block.id]: dropdownSelection }
+        setAnswered(newAnswered)
+        localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
+        localStorage.setItem(`progress-${data.id}`, 'done')
+    }
+
+    const handleFillDropdownAnswer = (block) => {
+        const isAllCorrect = block.phrases.every((phrase, idx) => fillDropdownSelections[idx] === phrase.correctIndex)
+        setFillDropdownAnswered(true)
+
+        if (isAllCorrect && typeof onComplete === 'function') {
+            onComplete(data.id)
+        }
+
+        const newAnswered = { ...answered, [block.id]: fillDropdownSelections }
+        setAnswered(newAnswered)
         localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
         localStorage.setItem(`progress-${data.id}`, 'done')
     }
@@ -80,42 +112,12 @@ export default function ModuleSection({data, onComplete}) {
                         <p>{activeBlock.question}</p>
 
                         {answered[activeBlock.id] !== undefined ? (
-                            <div style={{marginTop: 12}}>
-                                <p style={{fontWeight: 'bold', marginBottom: 10}}>
+                            <div style={{ marginTop: 12 }}>
+                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
                                     {activeBlock.options[answered[activeBlock.id]].isCorrect
                                         ? `✅ Верно! Отличный выбор!`
                                         : `❌ Это не совсем то... но ты молодец, что пробуешь!`}
                                 </p>
-
-                                <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
-                                    {activeBlock.options.map((opt, idx) => {
-                                        const isChosen = idx === answered[activeBlock.id]
-                                        const isCorrect = opt.isCorrect
-
-                                        const background = isChosen
-                                            ? (isCorrect ? '#d4edda' : '#f8d7da')
-                                            : '#f1f1f1'
-
-                                        const border = isChosen
-                                            ? (isCorrect ? '2px solid #28a745' : '2px solid #dc3545')
-                                            : '1px solid #ccc'
-
-                                        return (
-                                            <div
-                                                key={idx}
-                                                style={{
-                                                    padding: '10px',
-                                                    background,
-                                                    border,
-                                                    borderRadius: 6,
-                                                    opacity: isChosen ? 1 : 0.6
-                                                }}
-                                            >
-                                                {opt.text}
-                                            </div>
-                                        )
-                                    })}
-                                </div>
 
                                 <Mascot
                                     selected={activeBlock.options[answered[activeBlock.id]].isCorrect}
@@ -166,6 +168,65 @@ export default function ModuleSection({data, onComplete}) {
                         )}
                     </div>
                 )}
+
+                {activeBlock?.type === 'dropdownFillRisk' && (
+                    <div>
+                        <h3>🧩 Заполни пропуски</h3>
+                        <p>{activeBlock.question}</p>
+
+                        {answered[activeBlock.id] !== undefined || fillDropdownAnswered ? (
+                            <div style={{ marginTop: 12 }}>
+                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                                    {activeBlock.phrases.every((p, idx) => fillDropdownSelections[idx] === p.correctIndex)
+                                        ? `✅ Все ответы верны!`
+                                        : `❌ Есть ошибки, но ты справишься!`}
+                                </p>
+                                <Mascot
+                                    selected={activeBlock.phrases.every((p, idx) => fillDropdownSelections[idx] === p.correctIndex)}
+                                    type={data.mascot}
+                                />
+                            </div>
+                        ) : (
+                            <div style={{ marginTop: 10 }}>
+                                {activeBlock.phrases.map((phrase, idx) => (
+                                    <div key={idx} style={{ marginBottom: 12 }}>
+                                        <span>{phrase.textBefore}&nbsp;</span>
+                                        <select
+                                            value={fillDropdownSelections[idx] ?? ''}
+                                            onChange={(e) => {
+                                                const copy = [...fillDropdownSelections]
+                                                copy[idx] = Number(e.target.value)
+                                                setFillDropdownSelections(copy)
+                                            }}
+                                        >
+                                            <option value="" disabled>Выберите</option>
+                                            {phrase.options.map((opt, optIdx) => (
+                                                <option key={optIdx} value={optIdx}>{opt}</option>
+                                            ))}
+                                        </select>
+                                        <span>&nbsp;{phrase.textAfter}</span>
+                                    </div>
+                                ))}
+
+                                <button
+                                    onClick={() => handleFillDropdownAnswer(activeBlock)}
+                                    disabled={fillDropdownSelections.length !== activeBlock.phrases.length || fillDropdownSelections.includes(undefined)}
+                                    style={{
+                                        marginTop: 16,
+                                        padding: '8px 16px',
+                                        backgroundColor: '#007acc',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: 4,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Подтвердить
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             <button
@@ -174,7 +235,7 @@ export default function ModuleSection({data, onComplete}) {
                     setSelectedOption(null)
                     localStorage.removeItem(`answered-${data.id}`)
                     localStorage.removeItem(`progress-${data.id}`)
-                    localStorage.setItem(`tab-${data.id}`, activeTab) // сохраняем текущую вкладку
+                    localStorage.removeItem(`tab-${data.id}`)
                     window.location.reload()
                 }}
                 style={{
