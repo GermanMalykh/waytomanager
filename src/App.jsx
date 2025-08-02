@@ -1,4 +1,5 @@
-import React, {useState, useEffect} from 'react'
+// импорт
+import React, { useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import ModuleSection from './components/ModuleSection'
 import StarterBanner from './components/StarterBanner'
@@ -11,22 +12,30 @@ export default function App() {
     const [loadStage, setLoadStage] = useState('idle')
     const [fetchError, setFetchError] = useState(false)
     const [isTransitioning, setIsTransitioning] = useState(false)
+    const [completedMap, setCompletedMap] = useState({})
 
-    // восстановление последнего выбора
     useEffect(() => {
         const last = localStorage.getItem('waytomanager-last-selected')
         if (last) setSelectedModuleId(last)
         setIsInitialized(true)
+
+        const completed = {}
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('progress-')) {
+                const modId = key.replace('progress-', '')
+                completed[modId] = true
+            }
+        })
+        setCompletedMap(completed)
     }, [])
 
-    // загрузка модуля
     useEffect(() => {
         if (!selectedModuleId) return
 
         setModuleData(null)
         setFetchError(false)
         setLoadStage('loading')
-        console.log("📡 Загружаем модуль:", selectedModuleId)
+
         fetch(`${import.meta.env.BASE_URL}data/modules/${selectedModuleId}.json`)
             .then((res) => {
                 if (!res.ok) throw new Error('fetch_failed')
@@ -45,7 +54,6 @@ export default function App() {
             })
     }, [selectedModuleId])
 
-    // обработка выбора модуля
     const handleSelectModule = (moduleId, isBlocked = false) => {
         setIsTransitioning(true)
         setBlockedModuleId(null)
@@ -67,20 +75,15 @@ export default function App() {
 
     const handleModuleComplete = (moduleId) => {
         localStorage.setItem(`blocked-${moduleId}`, 'false')
+        localStorage.setItem(`progress-${moduleId}`, 'done')
+        setCompletedMap(prev => ({ ...prev, [moduleId]: true }))
     }
 
     function renderContent() {
-        if (isTransitioning) {
-            return null
-        }
+        if (isTransitioning) return null
 
         if (loadStage === 'loading' && selectedModuleId && !blockedModuleId) {
-            return (
-                <StarterBanner
-                    key={`loading-${selectedModuleId}`}
-                    spinner
-                />
-            )
+            return <StarterBanner key={`loading-${selectedModuleId}`} spinner />
         }
 
         if (blockedModuleId) {
@@ -112,17 +115,21 @@ export default function App() {
             )
         } else {
             return (
-                <ModuleSection data={moduleData} onComplete={handleModuleComplete}/>
+                <ModuleSection data={moduleData} onComplete={handleModuleComplete} />
             )
         }
     }
 
     return (
-        <div style={{display: 'flex'}}>
-            <Sidebar onSelect={handleSelectModule} activeModuleId={selectedModuleId}/>
+        <div style={{ display: 'flex' }}>
+            <Sidebar
+                onSelect={handleSelectModule}
+                activeModuleId={selectedModuleId}
+                completedMap={completedMap}
+            />
 
             {!isInitialized ? null : (
-                <main style={{flex: 1, padding: 40, maxWidth: 800}}>
+                <main style={{ flex: 1, padding: 40, maxWidth: 800 }}>
                     {renderContent()}
                 </main>
             )}

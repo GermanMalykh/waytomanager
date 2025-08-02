@@ -2,13 +2,22 @@ import React, {useState, useEffect} from 'react'
 import Mascot from './Mascot'
 
 export default function ModuleSection({ data, onComplete }) {
-    if (!data?.blocks || !Array.isArray(data.blocks)) {
-        return null
-    }
+    if (!data?.blocks || !Array.isArray(data.blocks)) return null
 
     const [selectedOption, setSelectedOption] = useState(null)
     const [answered, setAnswered] = useState({})
-    const [xp, setXp] = useState(0)
+    const blocks = data.blocks
+    const [activeTab, setActiveTab] = useState(null)
+
+    useEffect(() => {
+        setSelectedOption(null)
+        const saved = JSON.parse(localStorage.getItem(`answered-${data.id}`)) || {}
+        setAnswered(saved)
+
+        const firstTheory = blocks.find(b => b.type === 'theory')?.id
+        const savedTab = localStorage.getItem(`tab-${data.id}`)
+        setActiveTab(savedTab || firstTheory || blocks[0]?.id || 'block-0')
+    }, [data])
 
     const handleAnswer = (blockId, optionIndex) => {
         if (selectedOption === null) return
@@ -17,62 +26,31 @@ export default function ModuleSection({ data, onComplete }) {
         const block = blocks.find(b => b.id === blockId)
         const selected = block.options[optionIndex]
 
-        const newAnswered = {...answered, [blockId]: optionIndex}
-        const newXp = selected.isCorrect ? xp + 3 : xp
-
+        const newAnswered = { ...answered, [blockId]: optionIndex }
         setAnswered(newAnswered)
-        setXp(newXp)
 
         if (selected.isCorrect && typeof onComplete === 'function') {
             onComplete(data.id)
         }
 
-        localStorage.setItem(
-            `progress-${data.id}`,
-            JSON.stringify({answered: newAnswered, xp: newXp})
-        )
+        localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
+        localStorage.setItem(`progress-${data.id}`, 'done')
     }
 
-    const blocks = data.blocks
-    const [activeTab, setActiveTab] = useState(null)
-
-    useEffect(() => {
-        setSelectedOption(null)
-        const firstTheory = blocks.find(b => b.type === 'theory')?.id
-        setActiveTab(firstTheory || blocks[0]?.id || 'block-0')
-
-        const savedProgress = JSON.parse(localStorage.getItem(`progress-${data.id}`)) || {}
-        setAnswered(savedProgress.answered || {})
-        setXp(savedProgress.xp || 0)
-    }, [data])
-
     const activeBlock = blocks.find(block => block.id === activeTab)
-    const progress = Math.min((xp / 10) * 100, 100)
-
-    const ProgressBar = () => (
-        <div style={{marginBottom: 20}}>
-            <div style={{marginBottom: 5}}>🌟 Ваш прогресс: {xp} XP</div>
-            <div style={{background: '#eee', borderRadius: 4, height: 10, width: '100%'}}>
-                <div style={{
-                    width: `${progress}%`,
-                    background: '#4caf50',
-                    height: '100%',
-                    borderRadius: 4,
-                    transition: 'width 0.3s ease-in-out'
-                }}></div>
-            </div>
-        </div>
-    )
 
     return (
         <div>
             <h2>{data.title}</h2>
-            <ProgressBar/>
+
             <div style={{display: 'flex', marginBottom: 10}}>
                 {blocks.map((block, index) => (
                     <button
                         key={block.id || index}
-                        onClick={() => setActiveTab(block.id)}
+                        onClick={() => {
+                            setActiveTab(block.id)
+                            localStorage.setItem(`tab-${data.id}`, block.id)
+                        }}
                         style={{
                             padding: '6px 12px',
                             marginRight: 8,
@@ -193,9 +171,11 @@ export default function ModuleSection({ data, onComplete }) {
             <button
                 onClick={() => {
                     setAnswered({})
-                    setXp(0)
-                    localStorage.removeItem(`progress-${data.id}`)
                     setSelectedOption(null)
+                    localStorage.removeItem(`answered-${data.id}`)
+                    localStorage.removeItem(`progress-${data.id}`)
+                    localStorage.setItem(`tab-${data.id}`, activeTab) // сохраняем текущую вкладку
+                    window.location.reload()
                 }}
                 style={{
                     marginTop: 16,
