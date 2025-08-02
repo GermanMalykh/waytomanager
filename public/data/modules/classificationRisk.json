@@ -1,0 +1,37 @@
+{
+  "id": "classificationRisk",
+  "title": "Классификация: Управление рисками",
+  "mascot": "owl",
+  "blocks": [
+    {
+      "id": "classify-risk-1",
+      "label": "Разнеси по категориям",
+      "type": "classification",
+      "question": "Распредели утверждения по колонкам:",
+      "leftLabel": "Это про управление рисками",
+      "rightLabel": "Это не про риски",
+      "items": [
+        {
+          "text": "Создание плана реагирования",
+          "correctColumn": "left"
+        },
+        {
+          "text": "Выбор цветовой палитры для презентации",
+          "correctColumn": "right"
+        },
+        {
+          "text": "Мониторинг вероятности наступления угроз",
+          "correctColumn": "left"
+        },
+        {
+          "text": "Назначение команды по маркетингу",
+          "correctColumn": "right"
+        },
+        {
+          "text": "Оценка влияния возможных событий на цели проекта",
+          "correctColumn": "left"
+        }
+      ]
+    }
+  ]
+}

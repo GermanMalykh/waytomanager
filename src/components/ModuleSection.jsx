@@ -1,12 +1,12 @@
 import React, {useState, useEffect} from 'react'
 import Mascot from './Mascot'
+import MatchingBlock from './MatchingBlock'
+import ClassificationBlock from './ClassificationBlock'
 
-export default function ModuleSection({ data, onComplete }) {
+export default function ModuleSection({data, onComplete}) {
     if (!data?.blocks || !Array.isArray(data.blocks)) return null
 
     const [selectedOption, setSelectedOption] = useState(null)
-    const [dropdownSelection, setDropdownSelection] = useState(null)
-    const [dropdownAnswered, setDropdownAnswered] = useState(false)
     const [fillDropdownSelections, setFillDropdownSelections] = useState([])
     const [fillDropdownAnswered, setFillDropdownAnswered] = useState(false)
     const [answered, setAnswered] = useState({})
@@ -30,27 +30,13 @@ export default function ModuleSection({ data, onComplete }) {
         const block = blocks.find(b => b.id === blockId)
         const selected = block.options[optionIndex]
 
-        const newAnswered = { ...answered, [blockId]: optionIndex }
+        const newAnswered = {...answered, [blockId]: optionIndex}
         setAnswered(newAnswered)
 
         if (selected.isCorrect && typeof onComplete === 'function') {
             onComplete(data.id)
         }
 
-        localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
-        localStorage.setItem(`progress-${data.id}`, 'done')
-    }
-
-    const handleDropdownAnswer = (block) => {
-        const isCorrect = dropdownSelection === block.correctIndex
-        setDropdownAnswered(true)
-
-        if (isCorrect && typeof onComplete === 'function') {
-            onComplete(data.id)
-        }
-
-        const newAnswered = { ...answered, [block.id]: dropdownSelection }
-        setAnswered(newAnswered)
         localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
         localStorage.setItem(`progress-${data.id}`, 'done')
     }
@@ -63,7 +49,7 @@ export default function ModuleSection({ data, onComplete }) {
             onComplete(data.id)
         }
 
-        const newAnswered = { ...answered, [block.id]: fillDropdownSelections }
+        const newAnswered = {...answered, [block.id]: fillDropdownSelections}
         setAnswered(newAnswered)
         localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
         localStorage.setItem(`progress-${data.id}`, 'done')
@@ -112,8 +98,8 @@ export default function ModuleSection({ data, onComplete }) {
                         <p>{activeBlock.question}</p>
 
                         {answered[activeBlock.id] !== undefined ? (
-                            <div style={{ marginTop: 12 }}>
-                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                            <div style={{marginTop: 12}}>
+                                <p style={{fontWeight: 'bold', marginBottom: 10}}>
                                     {activeBlock.options[answered[activeBlock.id]].isCorrect
                                         ? `✅ Верно! Отличный выбор!`
                                         : `❌ Это не совсем то... но ты молодец, что пробуешь!`}
@@ -175,8 +161,8 @@ export default function ModuleSection({ data, onComplete }) {
                         <p>{activeBlock.question}</p>
 
                         {answered[activeBlock.id] !== undefined || fillDropdownAnswered ? (
-                            <div style={{ marginTop: 12 }}>
-                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                            <div style={{marginTop: 12}}>
+                                <p style={{fontWeight: 'bold', marginBottom: 10}}>
                                     {activeBlock.phrases.every((p, idx) => fillDropdownSelections[idx] === p.correctIndex)
                                         ? `✅ Все ответы верны!`
                                         : `❌ Есть ошибки, но ты справишься!`}
@@ -187,9 +173,9 @@ export default function ModuleSection({ data, onComplete }) {
                                 />
                             </div>
                         ) : (
-                            <div style={{ marginTop: 10 }}>
+                            <div style={{marginTop: 10}}>
                                 {activeBlock.phrases.map((phrase, idx) => (
-                                    <div key={idx} style={{ marginBottom: 12 }}>
+                                    <div key={idx} style={{marginBottom: 12}}>
                                         <span>{phrase.textBefore}&nbsp;</span>
                                         <select
                                             value={fillDropdownSelections[idx] ?? ''}
@@ -227,6 +213,69 @@ export default function ModuleSection({ data, onComplete }) {
                         )}
                     </div>
                 )}
+                {activeBlock?.type === 'matching' && (
+                    <div>
+                        <h3>🔗 Соединение понятий</h3>
+                        <p>{activeBlock.question}</p>
+
+                        {answered[activeBlock.id] !== undefined ? (
+                            <>
+                                <p style={{fontWeight: 'bold', marginTop: 10}}>
+                                    {answered[activeBlock.id] === true
+                                        ? '✅ Все пары совпали! Молодец!'
+                                        : '❌ Есть ошибки, попробуй снова!'}
+                                </p>
+                                <Mascot selected={answered[activeBlock.id] === true} type={data.mascot}/>
+                                <MatchingBlock block={activeBlock} disabled={true}/>
+                            </>
+                        ) : (
+                            <MatchingBlock
+                                block={activeBlock}
+                                onAnswer={(isCorrect) => {
+                                    const newAnswered = {...answered, [activeBlock.id]: isCorrect}
+                                    setAnswered(newAnswered)
+                                    localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
+                                    if (isCorrect && typeof onComplete === 'function') {
+                                        onComplete(data.id)
+                                    }
+                                    localStorage.setItem(`progress-${data.id}`, 'done')
+                                }}
+                            />
+                        )}
+                    </div>
+                )}
+
+                {activeBlock?.type === 'classification' && (
+                    <div>
+                        <h3>📂 Классификация</h3>
+                        {answered[activeBlock.id] !== undefined ? (
+                            <>
+                                <p style={{fontWeight: 'bold', marginTop: 10}}>
+                                    {answered[activeBlock.id] === true
+                                        ? '✅ Всё верно! Отличная работа!'
+                                        : '❌ Есть ошибки. Попробуй ещё раз!'}
+                                </p>
+                                <Mascot selected={answered[activeBlock.id] === true} type={data.mascot}/>
+                                <ClassificationBlock block={activeBlock} disabled={true}/>
+                            </>
+                        ) : (
+                            <ClassificationBlock
+                                block={activeBlock}
+                                onAnswer={(isCorrect) => {
+                                    const newAnswered = {...answered, [activeBlock.id]: isCorrect}
+                                    setAnswered(newAnswered)
+                                    localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
+                                    if (isCorrect && typeof onComplete === 'function') {
+                                        onComplete(data.id)
+                                    }
+                                    localStorage.setItem(`progress-${data.id}`, 'done')
+                                }}
+                            />
+                        )}
+                    </div>
+                )}
+
+
             </div>
 
             <button

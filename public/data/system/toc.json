@@ -4,6 +4,10 @@
     "title": "Принципы",
     "modules": [
       {
+        "id": "classificationRisk",
+        "title": "Классификация: Управление рисками"
+      },
+      {
         "id": "valueSystem",
         "title": "Создание ценности"
       },
@@ -14,6 +18,10 @@
       {
         "id": "dropdownFillRisk",
         "title": "Заполни пропуски"
+      },
+      {
+        "id": "matchRisk",
+        "title": "Соединение понятий: Риски"
       }
     ]
   },
