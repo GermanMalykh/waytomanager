@@ -3,16 +3,40 @@
     "id": "principles",
     "title": "Принципы",
     "modules": [
-      { "id": "valueSystem", "title": "Создание ценности" },
-      { "id": "riskManagement", "title": "Управление рисками" }
+      {
+        "id": "classificationRisk",
+        "title": "Классификация: Управление рисками"
+      },
+      {
+        "id": "valueSystem",
+        "title": "Создание ценности"
+      },
+      {
+        "id": "riskManagement",
+        "title": "Управление рисками"
+      },
+      {
+        "id": "dropdownFillRisk",
+        "title": "Заполни пропуски"
+      },
+      {
+        "id": "matchRisk",
+        "title": "Соединение понятий: Риски"
+      }
     ]
   },
   {
     "id": "mock",
     "title": "Мок",
     "modules": [
-      { "id": "title1", "title": "Тайтл1" },
-      { "id": "title2", "title": "Тайтл2" }
+      {
+        "id": "title1",
+        "title": "Тайтл1"
+      },
+      {
+        "id": "title2",
+        "title": "Тайтл2"
+      }
     ]
   }
 ]
