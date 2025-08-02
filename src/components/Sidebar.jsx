@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 
-export default function Sidebar({ onSelect, activeModuleId }) {
+export default function Sidebar({onSelect, activeModuleId}) {
     const [toc, setToc] = useState([]);
     const [query, setQuery] = useState("");
     const [isTocLoaded, setIsTocLoaded] = useState(false);
@@ -67,7 +67,7 @@ export default function Sidebar({ onSelect, activeModuleId }) {
                 <img
                     src={`${import.meta.env.BASE_URL}assets/system/books-and-people.svg`}
                     alt="WayToManager лого"
-                    style={{ width: 24, height: 24 }}
+                    style={{width: 24, height: 24}}
                 />
                 WayToManager
             </h2>
@@ -87,9 +87,9 @@ export default function Sidebar({ onSelect, activeModuleId }) {
             />
             {filteredToc.length > 0 ? (
                 filteredToc.map((section) => (
-                    <div key={section.id} style={{ marginBottom: 20 }}>
-                        <h3 style={{ fontSize: 16 }}>{section.title}</h3>
-                        <ul style={{ listStyle: "none", padding: 0 }}>
+                    <div key={section.id} style={{marginBottom: 20}}>
+                        <h3 style={{fontSize: 16}}>{section.title}</h3>
+                        <ul style={{listStyle: "none", padding: 0}}>
                             {section.modules.map((mod) => (
                                 <li
                                     key={mod.id}
@@ -156,9 +156,9 @@ export default function Sidebar({ onSelect, activeModuleId }) {
                     <img
                         src="/waytomanager/assets/system/no-results.svg"
                         alt="Ничего не найдено"
-                        style={{ maxWidth: 150, marginBottom: 10 }}
+                        style={{maxWidth: 150, marginBottom: 10}}
                     />
-                    <p style={{ fontStyle: "italic" }}>Ничего не найдено</p>
+                    <p style={{fontStyle: "italic"}}>Ничего не найдено</p>
                 </div>
             )}
         </div>

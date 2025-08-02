@@ -1,4 +1,4 @@
-export default function Mascot({ selected, type = "turtle" }) {
+export default function Mascot({selected, type = "turtle"}) {
     if (selected === null) return null
 
     const base = import.meta.env.BASE_URL
@@ -19,9 +19,9 @@ export default function Mascot({ selected, type = "turtle" }) {
     const mascot = mascots[type] || mascots.turtle
 
     return (
-        <div style={{ marginTop: 30, textAlign: 'center' }}>
-            <img src={mascot.img} alt={`Маскот ${type}`} style={{ height: 200 }} />
-            <p style={{ fontSize: 18, marginTop: 10 }}>
+        <div style={{marginTop: 30, textAlign: 'center'}}>
+            <img src={mascot.img} alt={`Маскот ${type}`} style={{height: 200}}/>
+            <p style={{fontSize: 18, marginTop: 10}}>
                 {selected ? mascot.correct : mascot.wrong}
             </p>
         </div>

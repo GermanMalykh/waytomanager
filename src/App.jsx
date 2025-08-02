@@ -1,5 +1,5 @@
 // импорт
-import React, { useState, useEffect } from 'react'
+import React, {useState, useEffect} from 'react'
 import Sidebar from './components/Sidebar'
 import ModuleSection from './components/ModuleSection'
 import StarterBanner from './components/StarterBanner'
@@ -76,14 +76,14 @@ export default function App() {
     const handleModuleComplete = (moduleId) => {
         localStorage.setItem(`blocked-${moduleId}`, 'false')
         localStorage.setItem(`progress-${moduleId}`, 'done')
-        setCompletedMap(prev => ({ ...prev, [moduleId]: true }))
+        setCompletedMap(prev => ({...prev, [moduleId]: true}))
     }
 
     function renderContent() {
         if (isTransitioning) return null
 
         if (loadStage === 'loading' && selectedModuleId && !blockedModuleId) {
-            return <StarterBanner key={`loading-${selectedModuleId}`} spinner />
+            return <StarterBanner key={`loading-${selectedModuleId}`} spinner/>
         }
 
         if (blockedModuleId) {
@@ -115,13 +115,13 @@ export default function App() {
             )
         } else {
             return (
-                <ModuleSection data={moduleData} onComplete={handleModuleComplete} />
+                <ModuleSection data={moduleData} onComplete={handleModuleComplete}/>
             )
         }
     }
 
     return (
-        <div style={{ display: 'flex' }}>
+        <div style={{display: 'flex'}}>
             <Sidebar
                 onSelect={handleSelectModule}
                 activeModuleId={selectedModuleId}
@@ -129,7 +129,7 @@ export default function App() {
             />
 
             {!isInitialized ? null : (
-                <main style={{ flex: 1, padding: 40, maxWidth: 800 }}>
+                <main style={{flex: 1, padding: 40, maxWidth: 800}}>
                     {renderContent()}
                 </main>
             )}

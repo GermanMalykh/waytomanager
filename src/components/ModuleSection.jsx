@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import Mascot from './Mascot'
 
-export default function ModuleSection({ data, onComplete }) {
+export default function ModuleSection({data, onComplete}) {
     if (!data?.blocks || !Array.isArray(data.blocks)) return null
 
     const [selectedOption, setSelectedOption] = useState(null)
@@ -26,7 +26,7 @@ export default function ModuleSection({ data, onComplete }) {
         const block = blocks.find(b => b.id === blockId)
         const selected = block.options[optionIndex]
 
-        const newAnswered = { ...answered, [blockId]: optionIndex }
+        const newAnswered = {...answered, [blockId]: optionIndex}
         setAnswered(newAnswered)
 
         if (selected.isCorrect && typeof onComplete === 'function') {
@@ -80,14 +80,14 @@ export default function ModuleSection({ data, onComplete }) {
                         <p>{activeBlock.question}</p>
 
                         {answered[activeBlock.id] !== undefined ? (
-                            <div style={{ marginTop: 12 }}>
-                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                            <div style={{marginTop: 12}}>
+                                <p style={{fontWeight: 'bold', marginBottom: 10}}>
                                     {activeBlock.options[answered[activeBlock.id]].isCorrect
                                         ? `✅ Верно! Отличный выбор!`
                                         : `❌ Это не совсем то... но ты молодец, что пробуешь!`}
                                 </p>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
                                     {activeBlock.options.map((opt, idx) => {
                                         const isChosen = idx === answered[activeBlock.id]
                                         const isCorrect = opt.isCorrect

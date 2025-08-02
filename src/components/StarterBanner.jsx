@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, {useState, useEffect} from "react"
 
 export default function StarterBanner({
                                           src,
@@ -56,7 +56,7 @@ export default function StarterBanner({
                 )}
 
                 {(spinner || !ready) && (
-                    <div style={{ position: "absolute", top: 0, textAlign: "center", width: "100%" }}>
+                    <div style={{position: "absolute", top: 0, textAlign: "center", width: "100%"}}>
                         <div
                             style={{
                                 margin: "0 auto",
@@ -68,7 +68,7 @@ export default function StarterBanner({
                                 animation: "spin 1s linear infinite"
                             }}
                         />
-                        <div style={{ marginTop: 12, fontSize: 14, color: "#666" }}>
+                        <div style={{marginTop: 12, fontSize: 14, color: "#666"}}>
                             {tip}
                         </div>
                     </div>
