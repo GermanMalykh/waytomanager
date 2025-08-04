@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react'
 import Mascot from './Mascot'
 import MatchingBlock from './MatchingBlock'
 import ClassificationBlock from './ClassificationBlock'
+import OrderingQuestion from "./OrderingQuestion";
 
 export default function ModuleSection({data, onComplete}) {
     if (!data?.blocks || !Array.isArray(data.blocks)) return null
@@ -12,6 +13,7 @@ export default function ModuleSection({data, onComplete}) {
     const [answered, setAnswered] = useState({})
     const blocks = data.blocks
     const [activeTab, setActiveTab] = useState(null)
+    const [resetKey, setResetKey] = useState(0)
 
     useEffect(() => {
         setSelectedOption(null)
@@ -21,7 +23,18 @@ export default function ModuleSection({data, onComplete}) {
         const firstTheory = blocks.find(b => b.type === 'theory')?.id
         const savedTab = localStorage.getItem(`tab-${data.id}`)
         setActiveTab(savedTab || firstTheory || blocks[0]?.id || 'block-0')
+
+        // 👇 ДОБАВЛЕННОЕ: сброс незавершённых classification-блоков
+        blocks
+            .filter(b => b.type === 'classification')
+            .forEach(b => {
+                if (saved[b.id] !== true) {
+                    localStorage.removeItem(`classification-${b.id}`)
+                    localStorage.removeItem(`classification-results-${b.id}`)
+                }
+            })
     }, [data])
+
 
     const handleAnswer = (blockId, optionIndex) => {
         if (selectedOption === null) return
@@ -56,6 +69,21 @@ export default function ModuleSection({data, onComplete}) {
     }
 
     const activeBlock = blocks.find(block => block.id === activeTab)
+
+    const handleOrderingAnswer = (blockId, userOrder) => {
+        const block = blocks.find(b => b.id === blockId)
+        const isCorrect = JSON.stringify(userOrder) === JSON.stringify(block.correctOrder)
+
+        const newAnswered = { ...answered, [blockId]: userOrder } // сохраняем сам порядок
+        setAnswered(newAnswered)
+        localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
+
+        if (isCorrect && typeof onComplete === 'function') {
+            onComplete(data.id)
+        }
+
+        localStorage.setItem(`progress-${data.id}`, 'done')
+    }
 
     return (
         <div>
@@ -248,28 +276,65 @@ export default function ModuleSection({data, onComplete}) {
                 {activeBlock?.type === 'classification' && (
                     <div>
                         <h3>📂 Классификация</h3>
-                        {answered[activeBlock.id] !== undefined ? (
+
+                        {answered[activeBlock.id] === true && (
                             <>
-                                <p style={{fontWeight: 'bold', marginTop: 10}}>
-                                    {answered[activeBlock.id] === true
+                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                                    {answered[activeBlock.id]
                                         ? '✅ Всё верно! Отличная работа!'
                                         : '❌ Есть ошибки. Попробуй ещё раз!'}
                                 </p>
-                                <Mascot selected={answered[activeBlock.id] === true} type={data.mascot}/>
-                                <ClassificationBlock block={activeBlock} disabled={true}/>
+                                <Mascot selected={answered[activeBlock.id] === true} type={data.mascot} />
                             </>
-                        ) : (
-                            <ClassificationBlock
-                                block={activeBlock}
-                                onAnswer={(isCorrect) => {
-                                    const newAnswered = {...answered, [activeBlock.id]: isCorrect}
-                                    setAnswered(newAnswered)
-                                    localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
-                                    if (isCorrect && typeof onComplete === 'function') {
+                        )}
+
+                        <ClassificationBlock
+                            block={activeBlock}
+                            resetKey={resetKey}
+                            onAnswer={(resultsById) => {
+                                const isCorrect = Object.values(resultsById).every(x => x === true)
+                                const newAnswered = { ...answered, [activeBlock.id]: isCorrect }
+                                setAnswered(newAnswered)
+
+                                localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
+                                if (isCorrect) {
+                                    localStorage.setItem(`progress-${data.id}`, 'done')
+                                    if (typeof onComplete === 'function') {
                                         onComplete(data.id)
                                     }
-                                    localStorage.setItem(`progress-${data.id}`, 'done')
-                                }}
+                                }
+                            }}
+                        />
+                    </div>
+                )}
+
+
+                {activeBlock?.type === 'ordering' && (
+                    <div>
+                        ...
+                        {answered[activeBlock.id] !== undefined ? (
+                            <>
+                                ...
+                                <OrderingQuestion
+                                    question={activeBlock.question}
+                                    items={activeBlock.items}
+                                    correctOrder={activeBlock.correctOrder}
+                                    onAnswer={(userOrder) => handleOrderingAnswer(activeBlock.id, userOrder)}
+                                    isCompleted={answered[activeBlock.id] !== undefined}
+                                    moduleId={data.id}
+                                    blockId={activeBlock.id}
+                                    mascotType={data.mascot}
+                                />
+                            </>
+                        ) : (
+                            <OrderingQuestion
+                                question={activeBlock.question}
+                                items={activeBlock.items}
+                                correctOrder={activeBlock.correctOrder}
+                                onAnswer={(userOrder) => handleOrderingAnswer(activeBlock.id, userOrder)}
+                                moduleId={data.id}
+                                blockId={activeBlock.id}
+                                mascotType={data.mascot}
                             />
                         )}
                     </div>
@@ -282,9 +347,17 @@ export default function ModuleSection({data, onComplete}) {
                 onClick={() => {
                     setAnswered({})
                     setSelectedOption(null)
+                    setResetKey(prev => prev + 1)
+
                     localStorage.removeItem(`answered-${data.id}`)
                     localStorage.removeItem(`progress-${data.id}`)
                     localStorage.removeItem(`tab-${data.id}`)
+
+                    // 👇 ДОБАВЛЕННОЕ: сброс для блоков классификации
+                    blocks
+                        .filter(b => b.type === 'classification')
+                        .forEach(b => localStorage.removeItem(`classification-${b.id}`))
+
                     window.location.reload()
                 }}
                 style={{
