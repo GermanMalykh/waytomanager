@@ -35,6 +35,22 @@ export default function ModuleSection({data, onComplete}) {
             })
     }, [data])
 
+    useEffect(() => {
+        if (!activeTab) return
+
+        const activeBlock = blocks.find(block => block.id === activeTab)
+        if (activeBlock?.type === 'dropdownFillRisk') {
+            const savedSelections = localStorage.getItem(`dropdownSelections-${data.id}-${activeBlock.id}`)
+            if (savedSelections) {
+                setFillDropdownSelections(JSON.parse(savedSelections))
+                setFillDropdownAnswered(true)
+            } else {
+                setFillDropdownSelections([])
+                setFillDropdownAnswered(false)
+            }
+        }
+    }, [activeTab])
+
 
     const handleAnswer = (blockId, optionIndex) => {
         if (selectedOption === null) return
@@ -66,6 +82,7 @@ export default function ModuleSection({data, onComplete}) {
         setAnswered(newAnswered)
         localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
         localStorage.setItem(`progress-${data.id}`, 'done')
+        localStorage.setItem(`dropdownSelections-${data.id}-${block.id}`, JSON.stringify(fillDropdownSelections))
     }
 
     const activeBlock = blocks.find(block => block.id === activeTab)
@@ -125,44 +142,48 @@ export default function ModuleSection({data, onComplete}) {
                         <h3>🎯 Ситуация</h3>
                         <p>{activeBlock.question}</p>
 
-                        {answered[activeBlock.id] !== undefined ? (
-                            <div style={{marginTop: 12}}>
-                                <p style={{fontWeight: 'bold', marginBottom: 10}}>
-                                    {activeBlock.options[answered[activeBlock.id]].isCorrect
-                                        ? `✅ Верно! Отличный выбор!`
-                                        : `❌ Это не совсем то... но ты молодец, что пробуешь!`}
-                                </p>
-
-                                <Mascot
-                                    selected={activeBlock.options[answered[activeBlock.id]].isCorrect}
-                                    type={data.mascot}
-                                />
+                        <form
+                            onSubmit={e => {
+                                e.preventDefault()
+                                if (selectedOption !== null) {
+                                    handleAnswer(activeBlock.id, selectedOption)
+                                }
+                            }}
+                            style={{ marginTop: 10 }}
+                        >
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                {activeBlock.options.map((opt, idx) => (
+                                    <label
+                                        key={idx}
+                                        style={{
+                                            cursor: 'pointer',
+                                            backgroundColor:
+                                                answered[activeBlock.id] === idx
+                                                    ? (opt.isCorrect ? '#e6ffed' : '#ffe6e6')
+                                                    : 'transparent',
+                                            border:
+                                                answered[activeBlock.id] === idx
+                                                    ? (opt.isCorrect ? '1px solid #22c55e' : '1px solid #ef4444')
+                                                    : '1px solid transparent',
+                                            padding: 8,
+                                            borderRadius: 4
+                                        }}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="situationAnswer"
+                                            value={idx}
+                                            checked={selectedOption === idx}
+                                            disabled={answered[activeBlock.id] !== undefined}
+                                            onChange={() => setSelectedOption(idx)}
+                                            style={{ marginRight: 8 }}
+                                        />
+                                        {opt.text}
+                                    </label>
+                                ))}
                             </div>
-                        ) : (
-                            <form
-                                onSubmit={e => {
-                                    e.preventDefault()
-                                    if (selectedOption !== null) {
-                                        handleAnswer(activeBlock.id, selectedOption)
-                                    }
-                                }}
-                                style={{marginTop: 10}}
-                            >
-                                <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
-                                    {activeBlock.options.map((opt, idx) => (
-                                        <label key={idx} style={{cursor: 'pointer'}}>
-                                            <input
-                                                type="radio"
-                                                name="situationAnswer"
-                                                value={idx}
-                                                checked={selectedOption === idx}
-                                                onChange={() => setSelectedOption(idx)}
-                                                style={{marginRight: 8}}
-                                            />
-                                            {opt.text}
-                                        </label>
-                                    ))}
-                                </div>
+
+                            {answered[activeBlock.id] === undefined && (
                                 <button
                                     type="submit"
                                     disabled={selectedOption === null}
@@ -178,7 +199,22 @@ export default function ModuleSection({data, onComplete}) {
                                 >
                                     Ответить
                                 </button>
-                            </form>
+                            )}
+                        </form>
+
+                        {answered[activeBlock.id] !== undefined && (
+                            <div style={{ marginTop: 16 }}>
+                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                                    {activeBlock.options[answered[activeBlock.id]].isCorrect
+                                        ? `✅ Верно! Отличный выбор!`
+                                        : `❌ Это не совсем то... но ты молодец, что пробуешь!`}
+                                </p>
+
+                                <Mascot
+                                    selected={activeBlock.options[answered[activeBlock.id]].isCorrect}
+                                    type={data.mascot}
+                                />
+                            </div>
                         )}
                     </div>
                 )}
@@ -188,29 +224,38 @@ export default function ModuleSection({data, onComplete}) {
                         <h3>🧩 Заполни пропуски</h3>
                         <p>{activeBlock.question}</p>
 
-                        {answered[activeBlock.id] !== undefined || fillDropdownAnswered ? (
-                            <div style={{marginTop: 12}}>
-                                <p style={{fontWeight: 'bold', marginBottom: 10}}>
-                                    {activeBlock.phrases.every((p, idx) => fillDropdownSelections[idx] === p.correctIndex)
-                                        ? `✅ Все ответы верны!`
-                                        : `❌ Есть ошибки, но ты справишься!`}
-                                </p>
-                                <Mascot
-                                    selected={activeBlock.phrases.every((p, idx) => fillDropdownSelections[idx] === p.correctIndex)}
-                                    type={data.mascot}
-                                />
-                            </div>
-                        ) : (
-                            <div style={{marginTop: 10}}>
-                                {activeBlock.phrases.map((phrase, idx) => (
-                                    <div key={idx} style={{marginBottom: 12}}>
+                        <div style={{ marginTop: 10 }}>
+                            {activeBlock.phrases.map((phrase, idx) => {
+                                const isAnswered = answered[activeBlock.id] !== undefined || fillDropdownAnswered
+                                const selectedIdx = fillDropdownSelections[idx]
+                                const isCorrect = selectedIdx === phrase.correctIndex
+
+                                return (
+                                    <div key={idx} style={{ marginBottom: 12 }}>
                                         <span>{phrase.textBefore}&nbsp;</span>
                                         <select
-                                            value={fillDropdownSelections[idx] ?? ''}
+                                            value={selectedIdx ?? ''}
+                                            disabled={isAnswered}
                                             onChange={(e) => {
                                                 const copy = [...fillDropdownSelections]
                                                 copy[idx] = Number(e.target.value)
                                                 setFillDropdownSelections(copy)
+                                            }}
+                                            style={{
+                                                border:
+                                                    isAnswered && selectedIdx !== undefined
+                                                        ? isCorrect
+                                                            ? '2px solid #22c55e'
+                                                            : '2px solid #ef4444'
+                                                        : '1px solid #ccc',
+                                                backgroundColor:
+                                                    isAnswered && selectedIdx !== undefined
+                                                        ? isCorrect
+                                                            ? '#e6ffed'
+                                                            : '#ffe6e6'
+                                                        : 'white',
+                                                padding: '4px 8px',
+                                                borderRadius: 4
                                             }}
                                         >
                                             <option value="" disabled>Выберите</option>
@@ -220,8 +265,10 @@ export default function ModuleSection({data, onComplete}) {
                                         </select>
                                         <span>&nbsp;{phrase.textAfter}</span>
                                     </div>
-                                ))}
+                                )
+                            })}
 
+                            {!(answered[activeBlock.id] !== undefined || fillDropdownAnswered) && (
                                 <button
                                     onClick={() => handleFillDropdownAnswer(activeBlock)}
                                     disabled={fillDropdownSelections.length !== activeBlock.phrases.length || fillDropdownSelections.includes(undefined)}
@@ -237,10 +284,28 @@ export default function ModuleSection({data, onComplete}) {
                                 >
                                     Подтвердить
                                 </button>
-                            </div>
-                        )}
+                            )}
+
+                            {(answered[activeBlock.id] !== undefined || fillDropdownAnswered) && (
+                                <div style={{ marginTop: 16 }}>
+                                    <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                                        {activeBlock.phrases.every((p, idx) => fillDropdownSelections[idx] === p.correctIndex)
+                                            ? `✅ Все ответы верны!`
+                                            : `❌ Есть ошибки, но ты справишься!`}
+                                    </p>
+                                    <Mascot
+                                        selected={activeBlock.phrases.every((p, idx) => fillDropdownSelections[idx] === p.correctIndex)}
+                                        type={data.mascot}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
+
+
+
+
                 {activeBlock?.type === 'matching' && (
                     <div>
                         <h3>🔗 Соединение понятий</h3>
@@ -357,6 +422,12 @@ export default function ModuleSection({data, onComplete}) {
                     blocks
                         .filter(b => b.type === 'classification')
                         .forEach(b => localStorage.removeItem(`classification-${b.id}`))
+
+                    blocks
+                        .filter(b => b.type === 'dropdownFillRisk')
+                        .forEach(b => {
+                            localStorage.removeItem(`dropdownSelections-${data.id}-${b.id}`)
+                        })
 
                     window.location.reload()
                 }}

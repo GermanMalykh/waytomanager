@@ -4,6 +4,10 @@
     "title": "Принципы",
     "modules": [
       {
+        "id": "dropdownFillRisk",
+        "title": "Заполни пропуски"
+      },
+      {
         "id": "classificationRisk",
         "title": "Классификация: Управление рисками"
       },
@@ -18,10 +22,6 @@
       {
         "id": "riskManagement",
         "title": "Управление рисками"
-      },
-      {
-        "id": "dropdownFillRisk",
-        "title": "Заполни пропуски"
       },
       {
         "id": "matchRisk",
