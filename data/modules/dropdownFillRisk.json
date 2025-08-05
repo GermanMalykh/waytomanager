@@ -1,7 +1,7 @@
 {
   "id": "dropdownFillRisk",
   "title": "Заполни пропуски про риски",
-  "mascot": "owl",
+  "mascot": "meerkat",
   "blocks": [
     {
       "id": "theory",
