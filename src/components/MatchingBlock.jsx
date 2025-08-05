@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
-import { ArcherContainer, ArcherElement } from 'react-archer'
+import React, {useState} from 'react'
+import {ArcherContainer, ArcherElement} from 'react-archer'
 
-export default function MatchingBlock({ block, onAnswer, disabled }) {
+export default function MatchingBlock({block, onAnswer, disabled, savedConnections = {}, savedShuffledRight = []}) {
     const [selectedLeft, setSelectedLeft] = useState(null)
     const [connections, setConnections] = useState({})
+    const [showResult, setShowResult] = useState(false)
+
     const shuffledRight = React.useMemo(() => {
         return [...block.pairs.map(p => p.right)].sort(() => Math.random() - 0.5)
     }, [block])
@@ -21,20 +23,74 @@ export default function MatchingBlock({ block, onAnswer, disabled }) {
         return block.pairs.every(pair => connections[pair.left] === pair.right)
     }
 
+    const handleCheck = () => {
+        setShowResult(true)
+        const isCorrect = isAnswerCorrect()
+        if (onAnswer) {
+            onAnswer(isCorrect, connections, shuffledRight)
+        }
+    }
+
+    const getStrokeColor = (leftText, connectionsSource) => {
+        if (!showResult && !disabled) return '#007acc' // ✅ до проверки — всегда синие
+
+        if (!connectionsSource || typeof connectionsSource !== 'object') return '#007acc'
+
+        const correctPair = block.pairs.find(p => p.left === leftText)
+        if (!correctPair) return '#007acc'
+
+        const correctRight = correctPair.right
+        const actualRight = connectionsSource[leftText]
+
+        if (!actualRight) return '#007acc'
+
+        return correctRight === actualRight ? '#22c55e' : '#ef4444'
+    }
+
+    const markerDefs = (
+        <svg style={{height: 0, width: 0}}>
+            <defs>
+                <marker id="green-check" viewBox="0 0 20 20" refX="10" refY="10" markerWidth="20" markerHeight="20"
+                        orient="auto">
+                    <circle cx="10" cy="10" r="9" fill="#22c55e"/>
+                    <path d="M6 10l2 2l5 -5" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"
+                          strokeLinejoin="round"/>
+                </marker>
+                <marker id="red-cross" viewBox="0 0 20 20" refX="10" refY="10" markerWidth="20" markerHeight="20"
+                        orient="auto">
+                    <circle cx="10" cy="10" r="9" fill="#ef4444"/>
+                    <path d="M6 6l8 8M14 6l-8 8" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"
+                          strokeLinejoin="round"/>
+                </marker>
+            </defs>
+        </svg>
+    )
+
     return (
+
         <div>
+            {markerDefs}
             <ArcherContainer strokeColor="#007acc" strokeWidth={2}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 80, marginTop: 20 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{display: 'flex', justifyContent: 'space-between', gap: 80, marginTop: 20}}>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
                         {block.pairs.map((pair, idx) => (
                             <ArcherElement
                                 key={pair.left}
                                 id={`left-${idx}`}
-                                relations={connections[pair.left]
+                                relations={(disabled ? savedConnections : connections)[pair.left]
                                     ? [{
-                                        targetId: `right-${shuffledRight.indexOf(connections[pair.left])}`,
+                                        targetId: `right-${(disabled ? savedShuffledRight : shuffledRight).indexOf(
+                                            (disabled ? savedConnections : connections)[pair.left]
+                                        )}`,
                                         targetAnchor: 'left',
-                                        sourceAnchor: 'right'
+                                        sourceAnchor: 'right',
+                                        style: {
+                                            strokeColor: getStrokeColor(pair.left, disabled ? savedConnections : connections),
+                                            strokeWidth: 2,
+                                            markerEnd: getStrokeColor(pair.left, disabled ? savedConnections : connections) === '#22c55e'
+                                                ? 'url(#green-check)'
+                                                : 'url(#red-cross)'
+                                        }
                                     }]
                                     : []}
                             >
@@ -55,7 +111,7 @@ export default function MatchingBlock({ block, onAnswer, disabled }) {
                         ))}
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
                         {shuffledRight.map((right, idx) => (
                             <ArcherElement key={right} id={`right-${idx}`}>
                                 <div
@@ -80,7 +136,7 @@ export default function MatchingBlock({ block, onAnswer, disabled }) {
             {!disabled && (
                 <button
                     disabled={Object.keys(connections).length !== block.pairs.length}
-                    onClick={() => onAnswer(isAnswerCorrect())}
+                    onClick={handleCheck}
                     style={{
                         marginTop: 20,
                         padding: '8px 16px',

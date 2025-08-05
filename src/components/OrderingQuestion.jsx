@@ -106,7 +106,7 @@ export default function OrderingQuestion({
                             ? "✅ Все шаги расположены правильно!"
                             : "❌ Есть ошибки. Проверь порядок шагов."}
                     </p>
-                    <Mascot selected={isAllCorrect} type={mascotType || "owl"} />
+                    <Mascot selected={isAllCorrect} type={mascotType || "meerkat"} />
                 </div>
             )}
         </div>

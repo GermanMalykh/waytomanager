@@ -4,16 +4,20 @@
     "title": "Принципы",
     "modules": [
       {
+        "id": "matchRisk",
+        "title": "Соединение понятий: Риски"
+      },
+      {
         "id": "dropdownFillRisk",
         "title": "Заполни пропуски"
       },
       {
-        "id": "classificationRisk",
-        "title": "Классификация: Управление рисками"
-      },
-      {
         "id": "planningOrder",
         "title": "Распредели шаги: Планирование"
+      },
+      {
+        "id": "classificationRisk",
+        "title": "Классификация: Управление рисками"
       },
       {
         "id": "valueSystem",
@@ -22,10 +26,6 @@
       {
         "id": "riskManagement",
         "title": "Управление рисками"
-      },
-      {
-        "id": "matchRisk",
-        "title": "Соединение понятий: Риски"
       }
     ]
   },

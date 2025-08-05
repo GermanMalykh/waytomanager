@@ -28,7 +28,7 @@ export default function ModuleSection({data, onComplete}) {
         blocks
             .filter(b => b.type === 'classification')
             .forEach(b => {
-                if (saved[b.id] !== true) {
+                if (saved[b.id] === undefined) {
                     localStorage.removeItem(`classification-${b.id}`)
                     localStorage.removeItem(`classification-results-${b.id}`)
                 }
@@ -64,10 +64,11 @@ export default function ModuleSection({data, onComplete}) {
 
         if (selected.isCorrect && typeof onComplete === 'function') {
             onComplete(data.id)
+            localStorage.setItem(`progress-${data.id}`, 'done')
         }
 
         localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
-        localStorage.setItem(`progress-${data.id}`, 'done')
+
     }
 
     const handleFillDropdownAnswer = (block) => {
@@ -76,12 +77,13 @@ export default function ModuleSection({data, onComplete}) {
 
         if (isAllCorrect && typeof onComplete === 'function') {
             onComplete(data.id)
+            localStorage.setItem(`progress-${data.id}`, 'done')
         }
 
         const newAnswered = {...answered, [block.id]: fillDropdownSelections}
         setAnswered(newAnswered)
         localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
-        localStorage.setItem(`progress-${data.id}`, 'done')
+
         localStorage.setItem(`dropdownSelections-${data.id}-${block.id}`, JSON.stringify(fillDropdownSelections))
     }
 
@@ -91,15 +93,16 @@ export default function ModuleSection({data, onComplete}) {
         const block = blocks.find(b => b.id === blockId)
         const isCorrect = JSON.stringify(userOrder) === JSON.stringify(block.correctOrder)
 
-        const newAnswered = { ...answered, [blockId]: userOrder } // сохраняем сам порядок
+        const newAnswered = {...answered, [blockId]: userOrder} // сохраняем сам порядок
         setAnswered(newAnswered)
         localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
 
         if (isCorrect && typeof onComplete === 'function') {
             onComplete(data.id)
+            localStorage.setItem(`progress-${data.id}`, 'done')
         }
 
-        localStorage.setItem(`progress-${data.id}`, 'done')
+
     }
 
     return (
@@ -149,9 +152,9 @@ export default function ModuleSection({data, onComplete}) {
                                     handleAnswer(activeBlock.id, selectedOption)
                                 }
                             }}
-                            style={{ marginTop: 10 }}
+                            style={{marginTop: 10}}
                         >
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            <div style={{display: 'flex', flexDirection: 'column', gap: 10}}>
                                 {activeBlock.options.map((opt, idx) => (
                                     <label
                                         key={idx}
@@ -176,7 +179,7 @@ export default function ModuleSection({data, onComplete}) {
                                             checked={selectedOption === idx}
                                             disabled={answered[activeBlock.id] !== undefined}
                                             onChange={() => setSelectedOption(idx)}
-                                            style={{ marginRight: 8 }}
+                                            style={{marginRight: 8}}
                                         />
                                         {opt.text}
                                     </label>
@@ -203,8 +206,8 @@ export default function ModuleSection({data, onComplete}) {
                         </form>
 
                         {answered[activeBlock.id] !== undefined && (
-                            <div style={{ marginTop: 16 }}>
-                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                            <div style={{marginTop: 16}}>
+                                <p style={{fontWeight: 'bold', marginBottom: 10}}>
                                     {activeBlock.options[answered[activeBlock.id]].isCorrect
                                         ? `✅ Верно! Отличный выбор!`
                                         : `❌ Это не совсем то... но ты молодец, что пробуешь!`}
@@ -224,14 +227,14 @@ export default function ModuleSection({data, onComplete}) {
                         <h3>🧩 Заполни пропуски</h3>
                         <p>{activeBlock.question}</p>
 
-                        <div style={{ marginTop: 10 }}>
+                        <div style={{marginTop: 10}}>
                             {activeBlock.phrases.map((phrase, idx) => {
                                 const isAnswered = answered[activeBlock.id] !== undefined || fillDropdownAnswered
                                 const selectedIdx = fillDropdownSelections[idx]
                                 const isCorrect = selectedIdx === phrase.correctIndex
 
                                 return (
-                                    <div key={idx} style={{ marginBottom: 12 }}>
+                                    <div key={idx} style={{marginBottom: 12}}>
                                         <span>{phrase.textBefore}&nbsp;</span>
                                         <select
                                             value={selectedIdx ?? ''}
@@ -275,11 +278,18 @@ export default function ModuleSection({data, onComplete}) {
                                     style={{
                                         marginTop: 16,
                                         padding: '8px 16px',
-                                        backgroundColor: '#007acc',
-                                        color: 'white',
+                                        backgroundColor: (
+                                            fillDropdownSelections.length !== activeBlock.phrases.length || fillDropdownSelections.includes(undefined)
+                                        ) ? '#ccc' : '#007acc',
+                                        color: (
+                                            fillDropdownSelections.length !== activeBlock.phrases.length || fillDropdownSelections.includes(undefined)
+                                        ) ? '#666' : 'white',
                                         border: 'none',
                                         borderRadius: 4,
-                                        cursor: 'pointer'
+                                        cursor: (
+                                            fillDropdownSelections.length !== activeBlock.phrases.length || fillDropdownSelections.includes(undefined)
+                                        ) ? 'not-allowed' : 'pointer',
+                                        transition: 'background-color 0.2s'
                                     }}
                                 >
                                     Подтвердить
@@ -287,8 +297,8 @@ export default function ModuleSection({data, onComplete}) {
                             )}
 
                             {(answered[activeBlock.id] !== undefined || fillDropdownAnswered) && (
-                                <div style={{ marginTop: 16 }}>
-                                    <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                                <div style={{marginTop: 16}}>
+                                    <p style={{fontWeight: 'bold', marginBottom: 10}}>
                                         {activeBlock.phrases.every((p, idx) => fillDropdownSelections[idx] === p.correctIndex)
                                             ? `✅ Все ответы верны!`
                                             : `❌ Есть ошибки, но ты справишься!`}
@@ -304,8 +314,6 @@ export default function ModuleSection({data, onComplete}) {
                 )}
 
 
-
-
                 {activeBlock?.type === 'matching' && (
                     <div>
                         <h3>🔗 Соединение понятий</h3>
@@ -319,19 +327,29 @@ export default function ModuleSection({data, onComplete}) {
                                         : '❌ Есть ошибки, попробуй снова!'}
                                 </p>
                                 <Mascot selected={answered[activeBlock.id] === true} type={data.mascot}/>
-                                <MatchingBlock block={activeBlock} disabled={true}/>
+                                <MatchingBlock
+                                    block={activeBlock}
+                                    disabled={true}
+                                    savedConnections={JSON.parse(localStorage.getItem(`matching-connections-${data.id}-${activeBlock.id}`) || '{}')}
+                                    savedShuffledRight={JSON.parse(localStorage.getItem(`matching-right-${data.id}-${activeBlock.id}`) || '[]')}
+                                />
                             </>
                         ) : (
                             <MatchingBlock
                                 block={activeBlock}
-                                onAnswer={(isCorrect) => {
+                                onAnswer={(isCorrect, connections, shuffledRight) => {
                                     const newAnswered = {...answered, [activeBlock.id]: isCorrect}
                                     setAnswered(newAnswered)
                                     localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
+
+                                    // сохраняем соединения и порядок
+                                    localStorage.setItem(`matching-connections-${data.id}-${activeBlock.id}`, JSON.stringify(connections))
+                                    localStorage.setItem(`matching-right-${data.id}-${activeBlock.id}`, JSON.stringify(shuffledRight))
+
                                     if (isCorrect && typeof onComplete === 'function') {
                                         onComplete(data.id)
+                                        localStorage.setItem(`progress-${data.id}`, 'done')
                                     }
-                                    localStorage.setItem(`progress-${data.id}`, 'done')
                                 }}
                             />
                         )}
@@ -344,12 +362,12 @@ export default function ModuleSection({data, onComplete}) {
 
                         {answered[activeBlock.id] === true && (
                             <>
-                                <p style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                                <p style={{fontWeight: 'bold', marginBottom: 10}}>
                                     {answered[activeBlock.id]
                                         ? '✅ Всё верно! Отличная работа!'
                                         : '❌ Есть ошибки. Попробуй ещё раз!'}
                                 </p>
-                                <Mascot selected={answered[activeBlock.id] === true} type={data.mascot} />
+                                <Mascot selected={answered[activeBlock.id] === true} type={data.mascot}/>
                             </>
                         )}
 
@@ -358,7 +376,7 @@ export default function ModuleSection({data, onComplete}) {
                             resetKey={resetKey}
                             onAnswer={(resultsById) => {
                                 const isCorrect = Object.values(resultsById).every(x => x === true)
-                                const newAnswered = { ...answered, [activeBlock.id]: isCorrect }
+                                const newAnswered = {...answered, [activeBlock.id]: isCorrect}
                                 setAnswered(newAnswered)
 
                                 localStorage.setItem(`answered-${data.id}`, JSON.stringify(newAnswered))
@@ -412,11 +430,13 @@ export default function ModuleSection({data, onComplete}) {
                 onClick={() => {
                     setAnswered({})
                     setSelectedOption(null)
+                    setFillDropdownSelections([])
+                    setFillDropdownAnswered(false)
                     setResetKey(prev => prev + 1)
 
                     localStorage.removeItem(`answered-${data.id}`)
                     localStorage.removeItem(`progress-${data.id}`)
-                    localStorage.removeItem(`tab-${data.id}`)
+                    //localStorage.removeItem(`tab-${data.id}`)
 
                     // 👇 ДОБАВЛЕННОЕ: сброс для блоков классификации
                     blocks
@@ -429,7 +449,7 @@ export default function ModuleSection({data, onComplete}) {
                             localStorage.removeItem(`dropdownSelections-${data.id}-${b.id}`)
                         })
 
-                    window.location.reload()
+                    window.dispatchEvent(new Event('progress-reset'))
                 }}
                 style={{
                     marginTop: 16,

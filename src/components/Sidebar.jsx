@@ -42,6 +42,12 @@ export default function Sidebar({onSelect, activeModuleId}) {
         setVersion((v) => v + 1);
     }, [activeModuleId]);
 
+    useEffect(() => {
+        const update = () => setVersion(v => v + 1) // перерисовать компонент
+        window.addEventListener('progress-reset', update)
+        return () => window.removeEventListener('progress-reset', update)
+    }, [])
+
     if (!isTocLoaded) return null;
 
     return (

@@ -149,9 +149,16 @@ export default function ClassificationBlock({ block, onAnswer, resetKey }) {
 
         setResultState({ show: true, results: newResults })
 
+        // сохраняем всегда — даже если ошибки есть
+        localStorage.setItem(`classification-${block.id}`, JSON.stringify(columns))
+        localStorage.setItem(`classification-results-${block.id}`, JSON.stringify(newResults))
+
         if (isCorrect) {
-            localStorage.setItem(`classification-${block.id}`, JSON.stringify(columns))
-            localStorage.setItem(`classification-results-${block.id}`, JSON.stringify(newResults))
+            // если всё правильно — можно дополнительно обработать как успешный ответ
+            onAnswer(newResults)
+        } else {
+            // если ошибка — всё равно покажем результат, но не вызываем onComplete
+            onAnswer(newResults)
         }
 
         onAnswer(newResults)
